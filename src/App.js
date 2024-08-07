@@ -3,7 +3,7 @@ import axios from 'axios';
 import Carousel from 'react-bootstrap/Carousel';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 function App() {
   const [locations, setLocations] = useState([]);
   const [formData, setFormData] = useState({
@@ -22,7 +22,7 @@ function App() {
 
   const fetchLocations = async () => {
     try {
-      const response = await axios.get('https://bengaluru-house-price-prediction-qouw.onrender.com/get_location_names');
+      const response = await axios.get(`${BACKEND_URL}/get_location_names`);
       setLocations(response.data.locations);
     } catch (error) {
       console.error('Error fetching locations:', error);
@@ -38,7 +38,7 @@ function App() {
     e.preventDefault();
     setError(null);
     try {
-      const response = await axios.post('https://bengaluru-house-price-prediction-qouw.onrender.com/predict_home_price', formData);
+      const response = await axios.post(`${BACKEND_URL}/predict_home_price`, formData);
       setPrediction(response.data.estimated_price);
       setShowPrediction(true);
     } catch (error) {
@@ -102,58 +102,61 @@ function App() {
           </Carousel>
         </div>
         <div className="form-container">
-          {error && <p className="error">{error}</p>}
-          <form onSubmit={handleSubmit} className={`form ${showPrediction ? 'hidden' : 'visible'}`}>
-            <label>Total Square Feet</label>
-            <input
-              type="number"
-              name="total_sqft"
-              value={formData.total_sqft}
-              onChange={handleInputChange}
-              placeholder="Total Square Feet"
-              required
-            />
-            <label>Number of Bathrooms</label>
-            <input
-              type="number"
-              name="bath"
-              value={formData.bath}
-              onChange={handleInputChange}
-              placeholder="Number of Bathrooms"
-              required
-            />
-            <label>Number of BHK</label>
-            <input
-              type="number"
-              name="bhk"
-              value={formData.bhk}
-              onChange={handleInputChange}
-              placeholder="Number of BHK"
-              required
-            />
-            <label>Location</label>
-            <select
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select Location</option>
-              {locations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-            <button type="submit">Predict Price</button>
-          </form>
-          <div className={`prediction-details ${showPrediction ? 'visible' : 'hidden'}`}>
-            <p>
-              For buying a house in <strong>{formData.location}</strong> of <strong>{formData.total_sqft} square feet</strong> with <strong>{formData.bhk} BHK</strong> and <strong>{formData.bath} bathrooms</strong>, the predicted price is:
-            </p>
-            <h2>₹{prediction ? prediction.toLocaleString() : ''} lakhs</h2>
-            <button onClick={handleReset}>Thanks</button>
-          </div>
+          {!showPrediction ? (
+            <form onSubmit={handleSubmit} className="form">
+              {error && <p className="error">{error}</p>}
+              <label>Total Square Feet</label>
+              <input
+                type="number"
+                name="total_sqft"
+                value={formData.total_sqft}
+                onChange={handleInputChange}
+                placeholder="Total Square Feet"
+                required
+              />
+              <label>Number of Bathrooms</label>
+              <input
+                type="number"
+                name="bath"
+                value={formData.bath}
+                onChange={handleInputChange}
+                placeholder="Number of Bathrooms"
+                required
+              />
+              <label>Number of BHK</label>
+              <input
+                type="number"
+                name="bhk"
+                value={formData.bhk}
+                onChange={handleInputChange}
+                placeholder="Number of BHK"
+                required
+              />
+              <label>Location</label>
+              <select
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select Location</option>
+                {locations.map((location) => (
+                  <option key={location} value={location}>
+                    {location}
+                  </option>
+                ))}
+              </select>
+              <button type="submit">Predict Price</button>
+            </form>
+          ) : (
+            <div className="prediction-details">
+              <p>
+                For buying a house in <strong>{formData.location}</strong> of <strong>{formData.total_sqft} square feet</strong> with <strong>{formData.bhk} BHK</strong> and <strong>{formData.bath} bathrooms</strong>, the predicted price is:
+              </p>
+              <h2>₹{prediction ? prediction.toLocaleString() : ''} lakhs</h2>
+              <button onClick={handleReset} className="reset-button">Thanks</button>
+            </div>
+          )}
         </div>
       </div>
       <footer className="App-footer">
